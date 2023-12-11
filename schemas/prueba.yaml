@@ -1,0 +1,278 @@
+---
+asyncapi: 2.2.0
+id: urn:eventmesh:finm-arcv-erp
+defaultContentType: application/json
+info:
+  title: Kafka Subscriber - SAP Compensation Account Receivable AsyncAPI
+  version: 1.0.0
+  description: "![Nombre proyecto + ASYNCAPI](confluence proyecto)"
+  termsOfService: https://bcibank.atlassian.net/wiki/spaces/~7120202c2030c997e242b787c60fe004bc2fca/pages/3944316987/Esquema+de+Eventos
+  contact:
+    name: Aaron Ibaceta
+    email: aaron.ibaceta@bci.cl
+  license:
+    name: Core Platforms Teams
+    url: https://confluence.falabella.com/display/PLATFORM/Corporate+Core+Platforms+Team
+  x-java-package: corp.finm.arcv
+  x-owner:
+    name: Andrea Gaete
+    email: agaete@falabella.cl
+  x-architect:
+    name: Aldo Hernandez
+    email: ahernandezf@falabella.cl
+channels:
+  corp.finm.apyb.comp.receivable:
+    description: "Document Compensation Receivable events (ERP-SAP), channel"
+    subscribe:
+      operationId: corp.finm.apyb.comp.receivable.api.sub
+      description: |-
+        SAP Accounting Receivable AsyncAPI
+        ![any diagram that can help to describe the system](https://confluence.falabella.com/download/attachments/138784315/Diagrama%20de%20arquitectura.drawio.png?version=1&modificationDate=1634666909753&api=v2)
+      bindings:
+        $ref: '#/components/operationBindings/SubscriberKafkaConsumerSettings'
+      message:
+        $ref: '#/components/messages/EventReceivableCreated'
+    bindings:
+      $ref: '#/components/channelBindings/yourChannelSettings'
+    servers:
+    - kafka-uat
+    - kafka-dcc-production
+    - kafka-cdvl-production
+components:
+  schemas:
+    headers:
+      required:
+      - eventId
+      - eventType
+      - entityId
+      - entityType
+      - timeStamp
+      - dateTime
+      - version
+      - country
+      - commerce
+      - channel
+      - domain
+      - capability
+      - mimeType
+      type: object
+      properties:
+        eventId:
+          format: uuid
+          description: Event identification. Alphanumeric string formatted as UUID
+          type: string
+          example: 05a1c531-6733-4b98-8410-9dbb3ea416f6
+        eventType:
+          description: Event type in clear representation using past tense verbs
+          type: string
+          example: documentReceivableCreated
+        entityId:
+          description: Identification of the entity which is being referenced
+          type: string
+          example: E1234000123
+        entityType:
+          description: The entity type
+          type: string
+          example: documentReceivable
+        timeStamp:
+          format: epoch
+          description: Unix epoch indicating event occurrence
+          type: string
+          example: "1526395872"
+        dateTime:
+          format: date-time
+          description: Human readable date/time indicating event occurrence
+          type: string
+          example: 2017-07-21T17:32:28
+        version:
+          format: MajorVersion.minorVersion
+          description: The event structure version as is defined by the SCA team
+          type: string
+          example: "1.0"
+        country:
+          format: ISO3166-1
+          description: Physical location of the business that originated the event.ISO3166-1
+            alpha-2 formatted country name
+          type: string
+          example: CL
+        commerce:
+          description: Name of commerce as it is known
+          type: string
+          example: Falabella Retail
+        channel:
+          description: Distribution channel that originated the event
+          type: string
+          example: WEB
+        domain:
+          description: Business domain according the capability map
+          type: string
+          example: finm
+        capability:
+          description: Domain capability according the capability map
+          type: string
+          example: arcv
+        mimeType:
+          description: Used to indicate the mime type of the event
+          type: string
+          example: application/json
+    eventReceivableCreatedPayload:
+      required:
+      - documents
+      - header
+      type: object
+      properties:
+        header:
+          $ref: '#/components/schemas/headers'
+          required:
+          - Id_Message
+          - Date
+          - Country
+          - Company
+          - Legacy
+          - IntefaceCode
+          properties:
+            Id_Message:
+              type: string
+            Date:
+              type: string
+            Country:
+              type: string
+            Company:
+              type: string
+            Legacy:
+              type: string
+            IntefaceCode:
+              type: string
+        Documents:
+          type: object
+          properties:
+            Document:
+              type: array
+              items:
+                required:
+                - Guid
+                - Company
+                - IDDebtor
+                - DocumentCompensation
+                - Detail
+                type: object
+                properties:
+                  Guid:
+                    type: string
+                  Company:
+                    type: string
+                  IDDebtor:
+                    type: string
+                  DocumentCompensation:
+                    type: string
+                  Detail:
+                    type: object
+                    properties:
+                      Item:
+                        type: array
+                        items:
+                          required:
+                          - AccountantDocument
+                          - DocumentClass
+                          - DocumentDate
+                          - AmountDocument
+                          - CurrencyDocument
+                          - Reference
+                          - TaxDocumentDate
+                          - TextPosition
+                          - DateDocumentCompensation
+                          - Currency
+                          - RegistrationDate
+                          - TimeRegistration
+                          type: object
+                          properties:
+                            AccountantDocument:
+                              type: string
+                            DocumentClass:
+                              type: string
+                            DocumentDate:
+                              type: string
+                            AmountDocument:
+                              type: string
+                            CurrencyDocument:
+                              type: string
+                            Reference:
+                              type: string
+                            TaxDocumentDate:
+                              type: string
+                            TextPosition:
+                              type: string
+                            DateDocumentCompensation:
+                              type: string
+                            Currency:
+                              type: string
+                            RegistrationDate:
+                              type: string
+                            TimeRegistration:
+                              type: string
+  messages:
+    EventReceivableCreated:
+      headers:
+        $ref: '#/components/schemas/headers'
+      schemaFormat: application/vnd.aai.asyncapi;version=2.2.0
+      contentType: application/json
+      name: EventReceivableCreated
+      title: Event Receivable created
+      summary: "From api finm-arcv-erp [POST] event-compensation-receivable"
+      description: Event indicating the creation of a document receivable created
+        in SAP
+      tags:
+      - name: version
+        description: The version of the event in format v1.0
+      bindings:
+        kafka:
+          key:
+            type: string
+      payload:
+        $ref: '#/components/schemas/headers'
+  securitySchemes:
+    certSecurity:
+      type: X509
+      description: certificate for secure proxy conexions.
+    scramSha512:
+      type: scramSha512
+      description: Token/password for publishing/consumig events from the given channel.
+  channelBindings:
+    yourChannelSettings:
+      kafka:
+        replication-factor: 3
+        partition: 10
+        min-in-sync-replicas: 1
+  operationBindings:
+    SubscriberKafkaConsumerSettings:
+      kafka:
+        clientId:
+          type: string
+          pattern: "^[a-z]{22}$"
+        groupId:
+          name: corp.finm.apyb.comp.receivable.api.sub
+        auto.offset.reset:
+          type: string
+          default: latest
+          description: What to do when there is no initial offset in Kafka or if the
+            current offset does not exist any more on the server
+          enum:
+          - earliest
+          - latest
+        commit:
+          type: string
+          description: this value
+          default: auto
+          enum:
+          - auto
+          - manual
+tags:
+- name: CL
+- name: CORP
+- name: FINM
+- name: ARCV
+externalDocs:
+  description: API-SAP confluence
+  url: https://confluence.falabella.com/display/SFCYA/API+SAP
+  x-datadog-url: ""
+  x-devportal-sli-slo-url: ""
